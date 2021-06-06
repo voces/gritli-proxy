@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2020", "dom"],
+    "jsx": "react",
+    "jsxFactory": "React.createElement",
+    "jsxFragmentFactory": "React.Fragment"
+  }
+}
