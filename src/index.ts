@@ -39,7 +39,6 @@ app.get("/", async (req, res, next) => {
         typeof value === "bigint" ? value.toString() : value
       )
     );
-    res.json(resp);
   } catch (err) {
     next(err);
   }
