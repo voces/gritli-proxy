@@ -1,4 +1,4 @@
-import { MySQL } from "../deps.ts";
+import { ExecuteResult, MySQL } from "../deps.ts";
 
 type Config = {
   hostname: string;
@@ -11,7 +11,13 @@ const connections: Record<string, MySQL> = {};
 const configToConnectionKey = (config: Config) =>
   `${config.username}:${config.password}@${config.hostname}`;
 
-export const mysqlDriver = async (config: Config, query: string) => {
+export const mysqlDriver = async (
+  config: Config,
+  query: string,
+  retried = false,
+): Promise<
+  { duration: number } & (ExecuteResult | { error: Error })
+> => {
   const key = configToConnectionKey(config);
   if (!connections[key]) {
     // TODO: timeout and kill the connection if unused
@@ -27,6 +33,16 @@ export const mysqlDriver = async (config: Config, query: string) => {
   } catch (err) {
     console.error(err);
     error = err;
+    if (
+      err instanceof Deno.errors.ConnectionRefused ||
+      err instanceof Deno.errors.ConnectionAborted ||
+      err instanceof Deno.errors.ConnectionReset
+    ) {
+      delete connections[key];
+      if (err instanceof Deno.errors.ConnectionReset && !retried) {
+        return mysqlDriver(config, query, retried);
+      }
+    }
   }
 
   const duration = Date.now() - start;

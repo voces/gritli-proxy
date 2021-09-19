@@ -35,9 +35,10 @@ app.get("/", async (req, res, next) => {
     res.set("Cache-Control", "max-age=86400");
     res.set("Content-Type", "application/json");
     res.send(
-      JSON.stringify(resp, (_, value) =>
-        typeof value === "bigint" ? value.toString() : value
-      )
+      JSON.stringify(
+        resp,
+        (_, value) => typeof value === "bigint" ? value.toString() : value,
+      ),
     );
   } catch (err) {
     next(err);
