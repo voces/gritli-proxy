@@ -1,11 +1,26 @@
-import { opine, opineCors, Response } from "./deps.ts";
+import { DenoResponseBody, opine, opineCors, Response } from "./deps.ts";
 import drivers from "./drivers/index.ts";
+
+const port = 3000;
 
 const app = opine();
 
 app.use(opineCors());
 
-const port = 3000;
+app.use((req, res, next) => {
+  const start = Date.now();
+  const oldEnd = res.end;
+  const newEnd: typeof oldEnd =
+    ((async (body: DenoResponseBody | undefined) => {
+      const duration = Date.now() - start;
+      console.log(`${req.method} ${req.path} ${duration}ms - ${req.ip}`);
+      if (body) await oldEnd.call(res, body);
+      else await oldEnd.apply(res);
+      // deno-lint-ignore no-explicit-any
+    }) as any);
+  res.end = newEnd;
+  next();
+});
 
 app.get("/", async (req, res, next) => {
   if (typeof req.query.config !== "string") {
@@ -45,7 +60,7 @@ app.get("/", async (req, res, next) => {
   }
 });
 
-app.use((err: Error, _1: unknown, res: Response, _2: unknown) => {
+app.use((err: Error, _req: unknown, res: Response, _next: unknown) => {
   console.error(err);
   res.setStatus(400);
   res.send(err.message);
