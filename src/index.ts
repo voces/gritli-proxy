@@ -37,8 +37,8 @@ app.get("/", async (req, res, next) => {
     res.send({ message: "expect config to be json" });
     return;
   }
-  const query = req.query.query;
 
+  const query = req.query.query;
   if (typeof query !== "string") {
     res.setStatus(400);
     res.send({ message: "expect query to be a string" });

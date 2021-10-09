@@ -9,6 +9,7 @@ type Config = {
   hostname: string;
   password: string;
   username: string;
+  port: number;
 };
 
 export default async ({ driver, ...config }: Config, query: string) => {

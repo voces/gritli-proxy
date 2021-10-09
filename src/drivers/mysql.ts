@@ -4,6 +4,7 @@ type Config = {
   hostname: string;
   password: string;
   username: string;
+  port: number;
 };
 
 const pools: Record<string, MySQL[] | undefined> = {};
@@ -58,6 +59,7 @@ export const mysqlDriver = async (
     );
 
     if (connection instanceof Error) {
+      console.error(connection);
       return ({ duration: 0, error: connection });
     }
 
@@ -73,6 +75,12 @@ export const mysqlDriver = async (
     pool.push(connection);
   } catch (err) {
     console.error(err);
+    if (err instanceof Deno.errors.ConnectionRefused) {
+      if (err.message === "Connection refused (os error 61)") {
+        err.message = `No MySQL server found at ${config.hostname ??
+          "localhost"}@${config.port}`;
+      }
+    }
     error = err;
     if (
       err instanceof Deno.errors.ConnectionRefused ||
